@@ -122,61 +122,54 @@ class _CallPageState extends State<CallPage> {
     return Container(
       alignment: Alignment.bottomCenter,
       padding: const EdgeInsets.symmetric(vertical: 48),
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          RawMaterialButton(
-            onPressed: () {
-              setState(() {
-                _mute = !_mute;
-              });
-              _engine.muteLocalAudioStream(_mute);
-            },
-            child: Icon(
-              _mute ? Icons.mic_off : Icons.mic,
-              color: _mute ? Colors.white : Colors.blueAccent,
-              size: 20,
-            ),
-            shape: const CircleBorder(),
-            elevation: 2,
-            fillColor: _mute ? Colors.blueAccent : Colors.white,
-            padding: const EdgeInsets.all(12),
-          ),
-          RawMaterialButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Icon(
-              Icons.call_end,
-              color: Colors.white,
-              size: 35,
-            ),
-            shape: const CircleBorder(),
-            elevation: 2,
-            fillColor: Colors.red,
-            padding: const EdgeInsets.all(15),
-          ),
-          RawMaterialButton(
-            onPressed: () => _engine.switchCamera(),
-            child: const Icon(
-              Icons.switch_camera,
-              color: Colors.blueAccent,
-              size: 20,
-            ),
-            shape: const CircleBorder(),
-            elevation: 2,
-            fillColor: Colors.white,
-            padding: const EdgeInsets.all(12),
-          ),
-          RawMaterialButton(
-            onPressed: () => _engine.switchCamera(),
-            child: const Icon(
-              Icons.switch_camera,
-              color: Colors.pinkAccent,
-              size: 20,
-            ),
-            shape: const CircleBorder(),
-            elevation: 2,
-            fillColor: Colors.white,
-            padding: const EdgeInsets.all(12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RawMaterialButton(
+                onPressed: () {
+                  setState(() {
+                    _mute = !_mute;
+                  });
+                  _engine.muteLocalAudioStream(_mute);
+                },
+                child: Icon(
+                  _mute ? Icons.mic_off : Icons.mic,
+                  color: _mute ? Colors.white : Colors.blueAccent,
+                  size: 20,
+                ),
+                shape: const CircleBorder(),
+                elevation: 2,
+                fillColor: _mute ? Colors.blueAccent : Colors.white,
+                padding: const EdgeInsets.all(12),
+              ),
+              RawMaterialButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Icon(
+                  Icons.call_end,
+                  color: Colors.white,
+                  size: 35,
+                ),
+                shape: const CircleBorder(),
+                elevation: 2,
+                fillColor: Colors.red,
+                padding: const EdgeInsets.all(15),
+              ),
+              RawMaterialButton(
+                onPressed: () => _engine.switchCamera(),
+                child: const Icon(
+                  Icons.switch_camera,
+                  color: Colors.blueAccent,
+                  size: 20,
+                ),
+                shape: const CircleBorder(),
+                elevation: 2,
+                fillColor: Colors.white,
+                padding: const EdgeInsets.all(12),
+              ),
+            ],
           ),
         ],
       ),
