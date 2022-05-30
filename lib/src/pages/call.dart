@@ -64,19 +64,18 @@ class _CallPageState extends State<CallPage> {
         title: const Text('Agora'),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: (){
-            setState(() {
-              viewPanel = !viewPanel;
-            });
-          }, icon: const Icon(Icons.info_outline)),
+          IconButton(
+              onPressed: () {
+                setState(() {
+                  viewPanel = !viewPanel;
+                });
+              },
+              icon: const Icon(Icons.info_outline)),
         ],
       ),
       backgroundColor: Colors.black,
       body: Stack(
-        children: [
-          _viewRow(),
-          _toolbar()
-        ],
+        children: [_viewRow(), _toolbar()],
       ),
     );
   }
@@ -178,9 +177,9 @@ class _CallPageState extends State<CallPage> {
 
   Widget _viewRow() {
     final List<StatefulWidget> list = [];
-    if (widget.role == ClientRole.Broadcaster) {
-      list.add(const rtc_local_view.SurfaceView());
-    }
+    // if (widget.role == ClientRole.Broadcaster) {
+    //   list.add(const rtc_local_view.SurfaceView());
+    // }
     for (var uid in _users) {
       list.add(rtc_remote_view.SurfaceView(
         uid: uid,
@@ -189,9 +188,24 @@ class _CallPageState extends State<CallPage> {
     }
 
     final views = list;
-    return Column(
-      children:
-          List.generate(views.length, (index) => Expanded(child: views[index])),
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+              width: 130,
+              height: 190,
+              child: const rtc_local_view.SurfaceView()),
+        ),
+        Column(
+          children: List.generate(
+              views.length, (index) => Expanded(child: views[index])),
+        ),
+      ],
     );
   }
 }
