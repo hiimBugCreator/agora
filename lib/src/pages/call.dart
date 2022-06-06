@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:agora/src/utils/settings.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
+import 'package:draggable_float_widget/draggable_float_widget.dart';
 import 'package:flutter/material.dart';
 
 class CallPage extends StatefulWidget {
@@ -19,6 +22,14 @@ class _CallPageState extends State<CallPage> {
   final _infoString = <String>[];
   bool _mute = false;
   bool viewPanel = false;
+  bool _isShowing = false;
+  bool _isShowToolBar = false;
+  final double _defaultHeight = 190;
+  final double _defaultWidth = 130;
+  final double _sizeIncrease = 10;
+  double _height = 190;
+  double _width = 130;
+  Timer? timer;
   late RtcEngine _engine;
 
   @override
@@ -75,7 +86,10 @@ class _CallPageState extends State<CallPage> {
       ),
       backgroundColor: Colors.black,
       body: Stack(
-        children: [_viewRow(), _toolbar()],
+        children: [
+          _viewRow(),
+          (_isShowToolBar) ? _toolbar() : const SizedBox()
+        ],
       ),
     );
   }
@@ -188,24 +202,60 @@ class _CallPageState extends State<CallPage> {
     }
 
     final views = list;
+    final localView = localSurfaceView();
     return Stack(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-              ),
-              width: 130,
-              height: 190,
-              child: const rtc_local_view.SurfaceView()),
-        ),
         Column(
           children: List.generate(
               views.length, (index) => Expanded(child: views[index])),
         ),
+        localView,
       ],
     );
+  }
+
+  Widget localSurfaceView() {
+    return GestureDetector(
+        onTap: () {
+          if (_isShowing) {
+            countDownAnimation();
+          } else {
+            setState(() {
+              _isShowToolBar = true;
+              _height = _defaultHeight + _sizeIncrease;
+              _width = _defaultWidth + _sizeIncrease;
+            });
+            _isShowing = true;
+          }
+          countDownAnimation();
+        },
+        child: AnimatedContainer(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Container(
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                ),
+                width: _width,
+                height: _height,
+                child: const rtc_local_view.SurfaceView()),
+          ),
+          height: _height,
+          width: _width,
+          duration: const Duration(milliseconds: 300),
+        ));
+  }
+
+  void countDownAnimation() {
+    if (timer != null) timer!.cancel();
+    timer = Timer(const Duration(seconds: 5), () {
+      setState(() {
+        _isShowToolBar = false;
+        _height = _defaultHeight;
+        _width = _defaultWidth;
+      });
+      _isShowing = false;
+      timer = null;
+    });
   }
 }
