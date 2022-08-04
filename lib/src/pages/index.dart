@@ -2,8 +2,14 @@ import 'dart:developer';
 
 import 'package:agora/src/pages/call.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import '../../firebase_options.dart';
+import '../utils/notification_widget.dart';
 
 class IndexPage extends StatefulWidget {
   const IndexPage({Key? key}) : super(key: key);
@@ -13,18 +19,67 @@ class IndexPage extends StatefulWidget {
 }
 
 class _IndexPageState extends State<IndexPage> {
-  final _chanelController = TextEditingController();
+  final _channelController = TextEditingController();
+  late final FirebaseMessaging _messaging;
   bool _validateError = false;
   ClientRole? _role = ClientRole.Broadcaster;
 
   @override
   void dispose() {
-    _chanelController.dispose();
+    _channelController.dispose();
     super.dispose();
+  }
+
+  void registerNotification() async {
+    // 1. Initialize the Firebase app
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // 2. Instantiate Firebase Messaging
+    var _messaging = FirebaseMessaging.instance;
+
+    // 3. On iOS, this helps to take the user permissions
+    NotificationSettings settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      provisional: false,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+
+      // For handling the received notifications
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        // Parse the message received
+        PushNotification notification = PushNotification(
+          title: message.data["token"],
+          // body: message.notification?.body,
+          body: message.data["room"],
+        );
+        message.data.forEach((key, value) {
+          notification = PushNotification(
+            title: key,
+            body: value,
+          );
+        });
+        showSimpleNotification(
+          Text(notification.title!),
+          leading: const NotificationBadge(totalNotifications: 1),
+          subtitle: Text(notification.body!),
+          background: Colors.cyan.shade700,
+          duration: const Duration(seconds: 2),
+        );
+      });
+    } else {
+      print('User declined or has not accepted permission');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    registerNotification();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agora'),
@@ -44,7 +99,7 @@ class _IndexPageState extends State<IndexPage> {
               ),
               const SizedBox(height: 20),
               TextField(
-                controller: _chanelController,
+                controller: _channelController,
                 decoration: InputDecoration(
                   errorText: _validateError ? 'Chanel name is mandatory' : null,
                   border: const UnderlineInputBorder(
@@ -91,16 +146,16 @@ class _IndexPageState extends State<IndexPage> {
 
   Future<void> onJoin() async {
     setState(() {
-      _validateError = _chanelController.text.isEmpty ? true : false;
+      _validateError = _channelController.text.isEmpty ? true : false;
     });
-    if (_chanelController.text.isNotEmpty) {
+    if (_channelController.text.isNotEmpty) {
       await _handleCameraAndMic(Permission.camera);
       await _handleCameraAndMic(Permission.microphone);
       await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => CallPage(
-                    channelName: _chanelController.text,
+                    channelName: _channelController.text,
                     role: _role,
                   )));
     }
@@ -110,4 +165,14 @@ class _IndexPageState extends State<IndexPage> {
     final status = await permission.request();
     log(status.toString());
   }
+}
+
+class PushNotification {
+  PushNotification({
+    this.title,
+    this.body,
+  });
+
+  String? title;
+  String? body;
 }

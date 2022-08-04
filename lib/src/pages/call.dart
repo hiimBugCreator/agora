@@ -4,7 +4,6 @@ import 'package:agora/src/utils/settings.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
-import 'package:draggable_float_widget/draggable_float_widget.dart';
 import 'package:flutter/material.dart';
 
 class CallPage extends StatefulWidget {
@@ -148,39 +147,39 @@ class _CallPageState extends State<CallPage> {
                   });
                   _engine.muteLocalAudioStream(_mute);
                 },
+                shape: const CircleBorder(),
+                elevation: 2,
+                fillColor: _mute ? Colors.blueAccent : Colors.white,
+                padding: const EdgeInsets.all(12),
                 child: Icon(
                   _mute ? Icons.mic_off : Icons.mic,
                   color: _mute ? Colors.white : Colors.blueAccent,
                   size: 20,
                 ),
-                shape: const CircleBorder(),
-                elevation: 2,
-                fillColor: _mute ? Colors.blueAccent : Colors.white,
-                padding: const EdgeInsets.all(12),
               ),
               RawMaterialButton(
                 onPressed: () => Navigator.pop(context),
+                shape: const CircleBorder(),
+                elevation: 2,
+                fillColor: Colors.red,
+                padding: const EdgeInsets.all(15),
                 child: const Icon(
                   Icons.call_end,
                   color: Colors.white,
                   size: 35,
                 ),
-                shape: const CircleBorder(),
-                elevation: 2,
-                fillColor: Colors.red,
-                padding: const EdgeInsets.all(15),
               ),
               RawMaterialButton(
                 onPressed: () => _engine.switchCamera(),
+                shape: const CircleBorder(),
+                elevation: 2,
+                fillColor: Colors.white,
+                padding: const EdgeInsets.all(12),
                 child: const Icon(
                   Icons.switch_camera,
                   color: Colors.blueAccent,
                   size: 20,
                 ),
-                shape: const CircleBorder(),
-                elevation: 2,
-                fillColor: Colors.white,
-                padding: const EdgeInsets.all(12),
               ),
             ],
           ),
@@ -230,6 +229,9 @@ class _CallPageState extends State<CallPage> {
           countDownAnimation();
         },
         child: AnimatedContainer(
+          height: _height,
+          width: _width,
+          duration: const Duration(milliseconds: 300),
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Container(
@@ -240,9 +242,6 @@ class _CallPageState extends State<CallPage> {
                 height: _height,
                 child: const rtc_local_view.SurfaceView()),
           ),
-          height: _height,
-          width: _width,
-          duration: const Duration(milliseconds: 300),
         ));
   }
 
