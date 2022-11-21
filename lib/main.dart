@@ -1,4 +1,5 @@
 import 'package:agora/src/pages/index.dart';
+import 'package:agora/test.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.green,
         ),
-        home: const IndexPage(),
+        home: const IncomingCall(),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:agora/src/pages/call.dart';
+import 'package:agora/src/utils/settings.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -20,9 +21,11 @@ class IndexPage extends StatefulWidget {
 
 class _IndexPageState extends State<IndexPage> {
   final _channelController = TextEditingController();
-  late final FirebaseMessaging _messaging;
   bool _validateError = false;
   ClientRole? _role = ClientRole.Broadcaster;
+
+  static String channelName = "";
+  static String token = "";
 
   @override
   void dispose() {
@@ -37,26 +40,52 @@ class _IndexPageState extends State<IndexPage> {
     );
 
     // 2. Instantiate Firebase Messaging
-    var _messaging = FirebaseMessaging.instance;
+    var messaging = FirebaseMessaging.instance;
 
     // 3. On iOS, this helps to take the user permissions
-    NotificationSettings settings = await _messaging.requestPermission(
+    NotificationSettings settings = await messaging.requestPermission(
       alert: true,
       badge: true,
       provisional: false,
       sound: true,
     );
 
+    messaging.getInitialMessage().then((value) async {
+      print(value?.data);
+      // onJoin(channelName, token);
+      if (value != null) {
+        if (value.data["roomId"].toString().isNotEmpty && value.data["token"].toString().isNotEmpty) {
+          print("VKL");
+          if (open)  {
+            await Permission.camera.request();
+            await Permission.microphone.request();
+            await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => CallPage(
+                      channelName: value.data["roomId"] ?? channelName,
+                      token: value.data["token"] ?? token,
+                      role: _role ?? ClientRole.Broadcaster,
+                    )));
+            setState(() {
+              token = value.data["token"] ?? token;
+              channelName = value.data["roomId"] ?? channelName;
+              // open = false;
+            });
+          }
+        }
+      }
+    });
+
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('User granted permission');
-
       // For handling the received notifications
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         // Parse the message received
         PushNotification notification = PushNotification(
-          title: message.data["token"],
+          title: "title",
           // body: message.notification?.body,
-          body: message.data["room"],
+          body: "body",
         );
         message.data.forEach((key, value) {
           notification = PushNotification(
@@ -64,6 +93,7 @@ class _IndexPageState extends State<IndexPage> {
             body: value,
           );
         });
+
         showSimpleNotification(
           Text(notification.title!),
           leading: const NotificationBadge(totalNotifications: 1),
@@ -80,6 +110,30 @@ class _IndexPageState extends State<IndexPage> {
   @override
   Widget build(BuildContext context) {
     registerNotification();
+    FirebaseMessaging.onMessageOpenedApp.listen((event) async {
+      print(event.data);
+      // onJoin(channelName, token);
+      if (event.data["roomId"].toString().isNotEmpty && event.data["token"].toString().isNotEmpty) {
+        print("VKLopen");
+        if (open)  {
+          await Permission.camera.request();
+          await Permission.microphone.request();
+          await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => CallPage(
+                    channelName: event.data["roomId"] ?? channelName,
+                    token: event.data["token"] ?? token,
+                    role: _role ?? ClientRole.Broadcaster,
+                  )));
+          setState(() {
+            token = event.data["token"] ?? token;
+            channelName = event.data["roomId"] ?? channelName;
+            // open = false;
+          });
+        }
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agora'),
@@ -130,7 +184,7 @@ class _IndexPageState extends State<IndexPage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  onJoin();
+                  onJoin(_channelController.text, token);
                 },
                 child: const Text("Join"),
                 style: ElevatedButton.styleFrom(
@@ -144,18 +198,19 @@ class _IndexPageState extends State<IndexPage> {
     );
   }
 
-  Future<void> onJoin() async {
+  Future<void> onJoin(String channelName, String token) async {
     setState(() {
-      _validateError = _channelController.text.isEmpty ? true : false;
+      _validateError = channelName.isEmpty ? true : false;
     });
-    if (_channelController.text.isNotEmpty) {
+    if (channelName.isNotEmpty) {
       await _handleCameraAndMic(Permission.camera);
       await _handleCameraAndMic(Permission.microphone);
       await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => CallPage(
-                    channelName: _channelController.text,
+                    channelName: channelName,
+                    token: token,
                     role: _role,
                   )));
     }

@@ -9,8 +9,9 @@ import 'package:flutter/material.dart';
 class CallPage extends StatefulWidget {
   final String? channelName;
   final ClientRole? role;
+  final String? token;
 
-  const CallPage({Key? key, this.channelName, this.role}) : super(key: key);
+  const CallPage({Key? key, this.channelName, this.role, this.token}) : super(key: key);
 
   @override
   State<CallPage> createState() => _CallPageState();
@@ -64,11 +65,14 @@ class _CallPageState extends State<CallPage> {
     VideoEncoderConfiguration configuration = VideoEncoderConfiguration();
     configuration.dimensions = VideoDimensions(width: 1920, height: 1080);
     await _engine.setVideoEncoderConfiguration(configuration);
-    await _engine.joinChannel(token, widget.channelName!, null, 0);
+    await _engine.joinChannel(widget.token, widget.channelName!, null, 0);
   }
 
   @override
   Widget build(BuildContext context) {
+    setState(() {
+      open = false;
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agora'),
