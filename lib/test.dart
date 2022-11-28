@@ -10,7 +10,8 @@ class IncomingCall extends StatefulWidget {
   State<IncomingCall> createState() => _IncomingCallState();
 }
 
-class _IncomingCallState extends State<IncomingCall> with AutomaticKeepAliveClientMixin, TickerProviderStateMixin{
+class _IncomingCallState extends State<IncomingCall>
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
@@ -28,123 +29,148 @@ class _IncomingCallState extends State<IncomingCall> with AutomaticKeepAliveClie
     super.dispose();
   }
 
-  void _startAnimation() {
-    _controller
-      ..stop()
-      ..reset()
-      ..repeat(period: const Duration(seconds: 1));
-  }
-
   @override
   Widget build(BuildContext context) {
-    _startAnimation;
-    return Container(
-      color: Colors.blue,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(60),
-            child: Text("Test",
-                style: TextStyle(color: Colors.white, fontSize: 20)),
-          ),
-          Container(
-            width: 200,
-            height: 200,
-            child: CircleAvatar(
-              backgroundImage:
-                  NetworkImage('https://picsum.photos/id/237/200/300'),
+    return Scaffold(
+      body: Container(
+        color: Colors.blue,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 60, bottom: 20),
+              child: Text("Test",
+                  style: TextStyle(color: Colors.white, fontSize: 20, decorationStyle: TextDecorationStyle.wavy)),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Text("Name: abcxyz",
-                style: TextStyle(color: Colors.white, fontSize: 25)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Text("Incoming call",
-                style: TextStyle(color: Colors.white, fontSize: 18)),
-          ),
-          Expanded(
-            child: Container(
-              alignment: AlignmentDirectional.bottomEnd,
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            SizedBox(
+              height: 250,
+              width: 250,
+              child: Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 60, horizontal: 40),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        RawMaterialButton(
-                          onPressed: () {},
-                          elevation: 2.0,
-                          fillColor: Colors.red,
-                          child: Icon(
-                            Icons.call_end,
-                            size: 35.0,
-                            color: Colors.white,
-                          ),
-                          padding: EdgeInsets.all(15.0),
-                          shape: CircleBorder(),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(5),
-                          child: Text(
-                            "Decline",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ),
-                      ],
-                    ),
+                  SpinKitPulse(
+                    color: Colors.white,
+                    size: 250,
+                    controller: AnimationController(
+                        vsync: this,
+                        duration:
+                        const Duration(milliseconds: 1500)),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 60, horizontal: 40),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        RawMaterialButton(
-                          onPressed: () {
-                            _startAnimation;
-                          },
-                          elevation: 2.0,
-                          fillColor: Colors.green,
-                          padding: const EdgeInsets.all(15.0),
-                          shape: const CircleBorder(),
-                          child: const Icon(
-                            Icons.call,
-                            size: 35.0,
-                            color: Colors.white,
-                          ),
-                        ),
-                        // const Padding(
-                        //   padding: EdgeInsets.all(5),
-                        //   child: Text(
-                        //     "Accept",
-                        //     style: TextStyle(color: Colors.white, fontSize: 15),
-                        //   ),
-                        // ),
-                        SpinKitPulse(
-                          color: Colors.white,
-                          size: 50.0,
-                          controller: AnimationController(
-                              vsync: this,
-                              duration: const Duration(milliseconds: 1200)),
-                        )
-                      ],
+                  const Center(
+                    child: SizedBox(
+                      width: 180,
+                      height: 180,
+                      child: CircleAvatar(
+                        backgroundImage:
+                            NetworkImage('https://picsum.photos/id/237/200/250'),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          )
-        ],
+            const Text("Name: abcxyz",
+                style: TextStyle(color: Colors.white, fontSize: 25)),
+            const Padding(
+              padding: EdgeInsets.all(10),
+              child: Text("Incoming call",
+                  style: TextStyle(color: Colors.white, fontSize: 18)),
+            ),
+            Expanded(
+              child: Container(
+                alignment: AlignmentDirectional.bottomEnd,
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 60, horizontal: 40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            child: Center(
+                              child: RawMaterialButton(
+                                onPressed: () {},
+                                elevation: 2.0,
+                                fillColor: Colors.red,
+                                child: Icon(
+                                  Icons.call_end,
+                                  size: 35.0,
+                                  color: Colors.white,
+                                ),
+                                padding: EdgeInsets.all(15.0),
+                                shape: CircleBorder(),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(5),
+                            child: Text(
+                              "Decline",
+                              style: TextStyle(color: Colors.white, fontSize: 15),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 60, horizontal: 40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            child: Stack(
+                              children: <Widget>[
+                                SpinKitPulse(
+                                  color: Colors.white,
+                                  size: 120,
+                                  controller: AnimationController(
+                                      vsync: this,
+                                      duration:
+                                          const Duration(milliseconds: 1500)),
+                                ),
+                                Center(
+                                  child: RawMaterialButton(
+                                    onPressed: () {
+                                    },
+                                    elevation: 2.0,
+                                    fillColor: Colors.green,
+                                    padding: const EdgeInsets.all(15.0),
+                                    shape: const CircleBorder(),
+                                    child: const Icon(
+                                      Icons.call,
+                                      size: 35.0,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(5),
+                            child: Text(
+                              "Accept",
+                              style: TextStyle(color: Colors.white, fontSize: 15),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
