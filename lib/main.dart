@@ -1,10 +1,12 @@
+import 'package:agora/src/pages/call.dart';
 import 'package:agora/src/pages/index.dart';
 import 'package:agora/src/utils/notification_widget.dart';
-import 'package:agora/test.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:go_router/go_router.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,12 +16,37 @@ void main() {
   runApp(const MyApp());
 }
 
+final _router = GoRouter(
+  routes: <RouteBase>[
+    GoRoute(
+      path: '/',
+      builder: (BuildContext context, GoRouterState state) {
+        return const IndexPage();
+      },
+      routes: <RouteBase>[
+        ///call_screen?channelName=channelName&token=token
+        GoRoute(
+          path: 'call_screen',
+          builder: (BuildContext context, GoRouterState state) {
+            return CallPage(
+              channelName: state.queryParams['channelName'],
+              token: state.queryParams['token'],
+            );
+          },
+        ),
+      ],
+    ),
+  ],
+);
+
+Map<String, dynamic> callData = {};
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
-  showCallkitIncoming(Uuid().v4());
+  showCallkitIncoming(const Uuid().v4(), message.data);
 }
 
-Future<void> showCallkitIncoming(String uuid) async {
+Future<void> showCallkitIncoming(String uuid, Map<String, dynamic> data) async {
   var params = <String, dynamic>{
     'id': uuid,
     'nameCaller': 'Hien Nguyen',
@@ -60,7 +87,9 @@ Future<void> showCallkitIncoming(String uuid) async {
       'ringtonePath': 'system_ringtone_default'
     }
   };
-  await FlutterCallkitIncoming.showCallkitIncoming(params);
+  callData = data;
+  await FlutterCallkitIncoming.showCallkitIncoming(
+      CallKitParams.fromJson(params));
 }
 
 class MyApp extends StatefulWidget {
@@ -120,29 +149,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     messaging.getInitialMessage().then((value) async {
       print(value?.data);
-      // onJoin(channelName, token);
-      // if (value != null) {
-      //   if (value.data["roomId"].toString().isNotEmpty && value.data["token"].toString().isNotEmpty) {
-      //     print("VKL");
-      //     if (open)  {
-      //       await Permission.camera.request();
-      //       await Permission.microphone.request();
-      //       await Navigator.push(
-      //           context,
-      //           MaterialPageRoute(
-      //               builder: (context) => CallPage(
-      //                 channelName: value.data["roomId"] ?? channelName,
-      //                 token: value.data["token"] ?? token,
-      //                 role: _role ?? ClientRole.Broadcaster,
-      //               )));
-      //       setState(() {
-      //         token = value.data["token"] ?? token;
-      //         channelName = value.data["roomId"] ?? channelName;
-      //         // open = false;
-      //       });
-      //     }
-      //   }
-      // }
     });
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
@@ -177,16 +183,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   Future<void> getDevicePushTokenVoIP() async {
     var devicePushTokenVoIP =
-    await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+        await FlutterCallkitIncoming.getDevicePushTokenVoIP();
     print(devicePushTokenVoIP);
   }
 
   checkAndNavigationCallingPage() async {
-    // var currentCall = await getCurrentCall();
-    // if (currentCall != null) {
-    //   NavigationService.instance
-    //       .pushNamedIfNotCurrent(AppRoute.callingPage, args: currentCall);
-    // }
+    var currentCall = await getCurrentCall();
+    if (currentCall != null) {
+      if (!mounted) return;
+      context.goNamed('call_screen',
+          queryParams: {"channelName": 'hjhj', "token": 'tokenxx'});
+    }
   }
 
   @override
@@ -220,7 +227,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       print(
           'Message title: ${message.notification?.title}, body: ${message.notification?.body}, data: ${message.data}');
       _currentUuid = _uuid.v4();
-      showCallkitIncoming(_currentUuid);
+      showCallkitIncoming(_currentUuid, message.data);
     });
     _firebaseMessaging.getToken().then((token) {
       print('Device Token FCM: $token');
@@ -230,15 +237,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return OverlaySupport(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.green,
-        ),
-        home: const IndexPage(),
+      child: MaterialApp.router(
+        routerConfig: _router,
       ),
     );
   }
-
 }

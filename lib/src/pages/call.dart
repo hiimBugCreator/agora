@@ -11,7 +11,8 @@ class CallPage extends StatefulWidget {
   final ClientRole? role;
   final String? token;
 
-  const CallPage({Key? key, this.channelName, this.role, this.token}) : super(key: key);
+  const CallPage({Key? key, this.channelName, this.role, this.token})
+      : super(key: key);
 
   @override
   State<CallPage> createState() => _CallPageState();
@@ -47,6 +48,8 @@ class _CallPageState extends State<CallPage> {
   }
 
   Future<void> initialize() async {
+    print("token: ${widget.token}");
+    print("channalName: ${widget.channelName}");
     if (appId.isEmpty) {
       setState(() {
         _infoString.add('App_id is misssing');
