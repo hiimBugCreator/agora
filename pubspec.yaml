@@ -29,7 +29,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  agora_rtc_engine: ^5.2.0
+  agora_rtc_engine: ^6.1.0
   permission_handler: ^10.0.0
 
   # The following adds the Cupertino Icons font to your application.

@@ -1,17 +1,19 @@
 import 'dart:async';
 
 import 'package:agora/src/utils/settings.dart';
-import 'package:agora_rtc_engine/rtc_engine.dart';
-import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
-import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 
 class CallPage extends StatefulWidget {
-  final String? channelName;
-  final ClientRole? role;
-  final String? token;
+  final String channelName;
+  final ClientRoleType? role;
+  final String token;
 
-  const CallPage({Key? key, this.channelName, this.role, this.token})
+  const CallPage(
+      {Key? key,
+      required this.channelName,
+      required this.token,
+      this.role = ClientRoleType.clientRoleBroadcaster})
       : super(key: key);
 
   @override
@@ -43,7 +45,6 @@ class _CallPageState extends State<CallPage> {
   void dispose() {
     _users.clear();
     _engine.leaveChannel();
-    _engine.destroy();
     super.dispose();
   }
 
@@ -58,17 +59,25 @@ class _CallPageState extends State<CallPage> {
       return;
     }
     //init agora engine
-    _engine = await RtcEngine.create(appId);
+    _engine = createAgoraRtcEngine();
+    await _engine.initialize(const RtcEngineContext(
+      appId: appId,
+      channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+    ));
     await _engine.enableVideo();
-    await _engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
-    await _engine.setClientRole(widget.role!);
+    await _engine.setClientRole(role: widget.role!);
 
     //add agora event handler
     _addAgoraHandler();
-    VideoEncoderConfiguration configuration = VideoEncoderConfiguration();
-    configuration.dimensions = VideoDimensions(width: 1920, height: 1080);
+    VideoEncoderConfiguration configuration = const VideoEncoderConfiguration();
+    // configuration.dimensions = VideoDimensions(width: 1920, height: 1080);
     await _engine.setVideoEncoderConfiguration(configuration);
-    await _engine.joinChannel(widget.token, widget.channelName!, null, 0);
+    await _engine.joinChannel(
+      token: widget.token,
+      channelId: widget.channelName,
+      uid: 0,
+      options: const ChannelMediaOptions(),
+    );
   }
 
   @override
@@ -101,34 +110,25 @@ class _CallPageState extends State<CallPage> {
   }
 
   void _addAgoraHandler() {
-    _engine.setEventHandler(RtcEngineEventHandler(error: (code) {
+    _engine.registerEventHandler(RtcEngineEventHandler(
+      onJoinChannelSuccess: (connection, elapse) {
       setState(() {
-        final info = 'Error: $code';
+        final info = 'Join channel connection: $connection elapse: $elapse';
         _infoString.add(info);
       });
-    }, joinChannelSuccess: (channel, uid, elapse) {
-      setState(() {
-        final info = 'Join channel: $channel uid: $uid';
-        _infoString.add(info);
-      });
-    }, leaveChannel: (stats) {
-      setState(() {
-        _infoString.add('Leave channel');
-        _users.clear();
-      });
-    }, userJoined: (uid, elapse) {
+    }, onUserJoined: (connection, uid, elapse) {
       setState(() {
         final info = 'User joined: $uid';
         _infoString.add(info);
         _users.add(uid);
       });
-    }, userOffline: (uid, elapse) {
+    }, onUserOffline: (connection, uid, elapse) {
       setState(() {
         final info = 'User offline: $uid';
         _infoString.add(info);
         _users.remove(uid);
       });
-    }, firstRemoteVideoFrame: (uid, width, height, elapse) {
+    }, onFirstRemoteVideoFrame: (connection, uid, width, height, elapse) {
       setState(() {
         final info = 'First remote video: $uid (${width}x$height)';
         _infoString.add(info);
@@ -137,7 +137,7 @@ class _CallPageState extends State<CallPage> {
   }
 
   Widget _toolbar() {
-    if (widget.role == ClientRole.Audience) return const SizedBox();
+    if (widget.role == ClientRoleType.clientRoleAudience) return const SizedBox();
     return Container(
       alignment: Alignment.bottomCenter,
       padding: const EdgeInsets.symmetric(vertical: 48),
@@ -201,10 +201,17 @@ class _CallPageState extends State<CallPage> {
     //   list.add(const rtc_local_view.SurfaceView());
     // }
     for (var uid in _users) {
-      list.add(rtc_remote_view.SurfaceView(
-        uid: uid,
-        channelId: widget.channelName!,
+      list.add(AgoraVideoView(
+        controller: VideoViewController.remote(
+          rtcEngine: _engine,
+          canvas: VideoCanvas(uid: uid),
+          connection: RtcConnection(channelId: widget.channelName),
+        ),
       ));
+      // list.add(rtc_remote_view.SurfaceView(
+      //   uid: uid,
+      //   channelId: widget.channelName!,
+      // ));
     }
 
     final views = list;
@@ -247,7 +254,12 @@ class _CallPageState extends State<CallPage> {
                 ),
                 width: _width,
                 height: _height,
-                child: const rtc_local_view.SurfaceView()),
+                child: AgoraVideoView(
+                  controller: VideoViewController(
+                    rtcEngine: _engine,
+                    canvas: const VideoCanvas(uid: 0),
+                  ),
+                )),
           ),
         ));
   }

@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:agora/src/pages/call.dart';
-import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -15,10 +15,11 @@ class IndexPage extends StatefulWidget {
 class _IndexPageState extends State<IndexPage> {
   final _channelController = TextEditingController();
   bool _validateError = false;
-  ClientRole? _role = ClientRole.Broadcaster;
+  var _role = ClientRoleType.clientRoleBroadcaster;
 
   static String channelName = "";
-  static String token = "";
+  static String token =
+      "007eJxTYLi5z4tjh4VYxcTP9cqexuefsb5hWrvlVq7xi3d7jx82fROlwGBpbGFsYG6QlpxsnGSSaG5imZqYaGhhamqakmiYYmZgYJywNLkhkJHhfO4CVkYGCATxORgyMoEwMSORgQEAMi8iTA==";
 
   @override
   void dispose() {
@@ -83,22 +84,22 @@ class _IndexPageState extends State<IndexPage> {
               ),
               RadioListTile(
                 title: const Text("Broadcaster"),
-                onChanged: (ClientRole? value) {
+                onChanged: (ClientRoleType? value) {
                   setState(() {
-                    _role = value;
+                    _role = value!;
                   });
                 },
-                value: ClientRole.Broadcaster,
+                value: ClientRoleType.clientRoleBroadcaster,
                 groupValue: _role,
               ),
               RadioListTile(
                 title: const Text("Audience"),
-                onChanged: (ClientRole? value) {
+                onChanged: (ClientRoleType? value) {
                   setState(() {
-                    _role = value;
+                    _role = value!;
                   });
                 },
-                value: ClientRole.Audience,
+                value: ClientRoleType.clientRoleAudience,
                 groupValue: _role,
               ),
               ElevatedButton(

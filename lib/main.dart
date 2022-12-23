@@ -1,13 +1,18 @@
+import 'dart:convert';
+
 import 'package:agora/src/pages/call.dart';
 import 'package:agora/src/pages/index.dart';
 import 'package:agora/src/utils/notification_widget.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:go_router/go_router.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import 'firebase_options.dart';
@@ -23,18 +28,26 @@ final _router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         return const IndexPage();
       },
-      routes: <RouteBase>[
-        ///call_screen?channelName=channelName&token=token
-        GoRoute(
-          path: 'call_screen',
-          builder: (BuildContext context, GoRouterState state) {
-            return CallPage(
-              channelName: state.queryParams['channelName'],
-              token: state.queryParams['token'],
-            );
-          },
-        ),
-      ],
+    ),
+    GoRoute(
+      path: '/callscreen',
+      builder: (BuildContext context, GoRouterState state) {
+        var cData = jsonDecode(jsonEncode(state.extra)) ;
+        print("XXXXXXXXXXXXX ${cData}");
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => CallPage(
+                  channelName: cData['roomId'],
+                  token: cData['token'],
+                  role: ClientRoleType.clientRoleBroadcaster,
+                )));
+        return CallPage(
+          channelName: cData['roomId'],
+          token: cData['token'],
+          role: ClientRoleType.clientRoleAudience,
+        );
+      },
     ),
   ],
 );
@@ -87,7 +100,59 @@ Future<void> showCallkitIncoming(String uuid, Map<String, dynamic> data) async {
       'ringtonePath': 'system_ringtone_default'
     }
   };
-  callData = data;
+  Future<void> _handleCameraAndMic(Permission permission) async {
+    final status = await permission.request();
+  }
+
+  await FlutterCallkitIncoming.onEvent.listen((event) async {
+    switch (event?.event){
+      case Event.ACTION_CALL_ACCEPT:
+        await _handleCameraAndMic(Permission.camera);
+        await _handleCameraAndMic(Permission.microphone);
+        _router.go('/callscreen',extra: data);
+        break;
+      case Event.ACTION_DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_INCOMING:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_START:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_DECLINE:
+        FlutterCallkitIncoming.endAllCalls();
+        _router.go('/');
+        break;
+      case Event.ACTION_CALL_ENDED:
+        FlutterCallkitIncoming.endAllCalls();
+        _router.go('/');
+        break;
+      case Event.ACTION_CALL_TIMEOUT:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_CALLBACK:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_TOGGLE_HOLD:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_TOGGLE_MUTE:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_TOGGLE_DMTF:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_TOGGLE_GROUP:
+        // TODO: Handle this case.
+        break;
+      case Event.ACTION_CALL_TOGGLE_AUDIO_SESSION:
+        // TODO: Handle this case.
+        break;
+      default:
+        break;
+    }
+  });
   await FlutterCallkitIncoming.showCallkitIncoming(
       CallKitParams.fromJson(params));
 }
@@ -188,12 +253,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   checkAndNavigationCallingPage() async {
-    var currentCall = await getCurrentCall();
-    if (currentCall != null) {
-      if (!mounted) return;
-      context.goNamed('call_screen',
-          queryParams: {"channelName": 'hjhj', "token": 'tokenxx'});
-    }
+    // var currentCall = await getCurrentCall();
+    // if (currentCall != null) {
+    //   _router.go('/callscreen', extra: callData);
+    // } else {
+    //   _router.go('/');
+    // }
   }
 
   @override
